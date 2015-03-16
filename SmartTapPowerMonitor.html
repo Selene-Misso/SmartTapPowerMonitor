@@ -32,6 +32,7 @@
 <tr>
 </tr>
 </table>
+<p id="date"></p>
 	<!-- チャット表示部分 -->
 	<ul id="chat_area">
 	</ul>
@@ -43,16 +44,33 @@
 
 		// メッセージ受信時の処理
 		ws.onmessage = function(event){
-			var message_li = document.createElement("li");
-			message_li.textContent = event.data;
-			document.getElementById("chat_area").appendChild(message_li);
+			var data = JSON.parse(event.data);
+			var time = new Date(data.date);
+			
+			document.getElementById("date").innerText = time.toLocaleString();
+			
+			document.getElementById("val1").value = data.outlet1['power(W)'];
+			document.getElementById("val2").value = data.outlet2['power(W)'];
+			document.getElementById("val3").value = data.outlet3['power(W)'];
+			document.getElementById("val4").value = data.outlet4['power(W)'];
+			
+			document.getElementById("name1").value = data.outlet1['name'];
+			document.getElementById("name2").value = data.outlet2['name'];
+			document.getElementById("name3").value = data.outlet3['name'];
+			document.getElementById("name4").value = data.outlet4['name'];
+			
+//			console.log(data.outlet1['power(W)']);
+
+//			var message_li = document.createElement("li");
+//			message_li.textContent = event.data;
+//			document.getElementById("chat_area").appendChild(message_li);
 		};
 
 		// メッセージ送信時の処理
-		document.getElementById("send").onclick = function(){
-			var comment = document.getElementById("comment").value;
-			ws.send(comment);
-		};
+//		document.getElementById("send").onclick = function(){
+//			var comment = document.getElementById("comment").value;
+//			ws.send(comment);
+//		};
 	</script>
 </article>
 </section>
