@@ -1,29 +1,20 @@
 # multicast.rb
 # 
 # FIFOから得た値をWebsocketでマルチキャストする
-# まだFIFOからの受取はできてない
+# FIFO -> JSON -> Websocket -> All User
 
 require 'em-websocket'
 
 EventMachine.run {
   @channel = EM::Channel.new
 
-  open("FifoTest", "r+") do |fifo|
-    fifo.each do |line|
+  # Thread monitoring FIFO
+  read_thread = Thread.new do
+    @fifo = open("FifoTest", "r")
+    @fifo.each do |line|
       @channel.push "Time: #{line}."
     end
   end
-#  @twitter = Twitter::JSONStream.connect(
-#    :path => '/1/statuses/filter.json?track=ruby',
-#    :auth => "#{username}:#{password}",
-#    :ssl => true
-#  )
-
-#  @twitter.each_item do |status|
-#    status = JSON.parse(status)
-#    @channel.push "#{status['user']['screen_name']}: #{status['text']}"
-#  end
-
 
   EventMachine::WebSocket.start(:host => "192.168.0.212", :port => 3000, :debug => true) do |ws|
 
