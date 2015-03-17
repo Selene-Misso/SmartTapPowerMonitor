@@ -18,6 +18,7 @@ void main()
 int fd;
 char buf[256];
 //time_t timer;
+srand((unsigned) time(NULL));
 
         if(mkfifo("FifoTest",0666)==-1){
                 perror("mkfifo");
@@ -31,7 +32,7 @@ char buf[256];
         while(1){
 //                timer = time(NULL);
 //                sprintf(buf, "%s" , ctime(&timer));
-                sprintf(buf, "      57       6      35       0\n");
+                sprintf(buf, "      %5d       %5d      %5d       %5d\n", rand()%100,rand()%100,rand()%100,rand()%100);
 //              fgets(buf,sizeof(buf)-1,stdin);
 //              if(feof(stdin)){
 //                      break;
