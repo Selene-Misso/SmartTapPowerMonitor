@@ -45,7 +45,14 @@ EventMachine.run {
       #@channel.push "#{sid} connected!"
 
       ws.onmessage { |msg|
-        @channel.push "<#{sid}>: #{msg}"
+        #@channel.push "<#{sid}>: #{msg}"
+        
+        # Update outlet names
+        tmp = JSON.parse(msg)
+        @row["name1"] = tmp["name1"]
+        @row["name2"] = tmp["name2"]
+        @row["name3"] = tmp["name3"]
+        @row["name4"] = tmp["name4"]
       }
 
       ws.onclose {
