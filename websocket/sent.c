@@ -17,7 +17,7 @@ void main()
 {
 int fd;
 char buf[256];
-time_t timer;
+//time_t timer;
 
         if(mkfifo("FifoTest",0666)==-1){
                 perror("mkfifo");
@@ -29,8 +29,9 @@ time_t timer;
         }
 
         while(1){
-                timer = time(NULL);
-                sprintf(buf, "%s" , ctime(&timer));
+//                timer = time(NULL);
+//                sprintf(buf, "%s" , ctime(&timer));
+                sprintf(buf, "      57       6      35       0\n");
 //              fgets(buf,sizeof(buf)-1,stdin);
 //              if(feof(stdin)){
 //                      break;
