@@ -42,7 +42,7 @@ EventMachine.run {
 
     ws.onopen {
       sid = @channel.subscribe { |msg| ws.send msg }
-      @channel.push "#{sid} connected!"
+      #@channel.push "#{sid} connected!"
 
       ws.onmessage { |msg|
         @channel.push "<#{sid}>: #{msg}"
