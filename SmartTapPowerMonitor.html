@@ -1,77 +1,181 @@
+
 <!DOCTYPE html>
 <html>
 <head>
 	<meta charset="UTF-8">
-	<title>EM-WebSocket Smart Tap Power Monitor</title>
+	<title>Smart Tap Power Monitor</title>
+	<script src="http://www.amcharts.com/lib/amcharts.js"></script>
+	<script>
+		var data;
+		var chart;
+		var chartData = [];
+		var chartCursor;
+		var graph1;
+		var graph2;
+		var graph3;
+		var graph4;
+
+		// WebSocket コネクション
+		var ws = new WebSocket("ws://192.168.0.212:3000");
+
+		// メッセージ受信時の処理
+		ws.onmessage = function(event){
+			var recv = {};
+			recv = JSON.parse(event.data);
+			data = recv;
+
+			chartData.push(recv);
+			chart.dataProvider.shift();
+			chart.dataProvider.push(recv);
+			chart.validateData();
+
+			graph1.title = data.name1 + " (outlet1)";
+			graph2.title = data.name2 + " (outlet2)";
+			graph3.title = data.name3 + " (outlet3)";
+			graph4.title = data.name4 + " (outlet4)";
+/*			var message_li = document.createElement("li");
+			message_li.textContent = event.data;
+			document.getElementById("chat_area").appendChild(message_li);*/
+		};
+
+
+		// generate some random data, quite different range
+		function generateChartData() {
+			var first = '{"date":"2015-03-17 14:25:08 +0900","outlet1":0,"outlet2":0,"outlet3":0,"outlet4":0, "name1": "none", "name2": "non", "name3": "none", "name4": "none"}';
+			data = JSON.parse(first);
+			chartData.push(data);
+		}
+		// create chart
+		AmCharts.ready(function() {
+			// generate some data first
+			generateChartData();
+
+			// SERIAL CHART 
+			chart = new AmCharts.AmSerialChart();
+			chart.pathToImages = "http://www.amcharts.com/lib/images/";
+			chart.marginTop = 0;
+			chart.marginRight = 10;
+			chart.autoMarginOffset = 5;
+			chart.zoomOutButton = {
+				backgroundColor: '#000000',
+				backgroundAlpha: 0.15
+			};
+			chart.dataProvider = chartData;
+			chart.categoryField = "date";
+
+			// AXES
+			// category
+			var categoryAxis = chart.categoryAxis;
+			categoryAxis.title = "Time";
+			categoryAxis.parseDates = true;
+			categoryAxis.minPeriod = "ss";
+			categoryAxis.dashLength = 1;
+			categoryAxis.gridAlpha = 0.15;
+			categoryAxis.axisColor = "#DADADA";
+
+			// value				
+			var valueAxis = new AmCharts.ValueAxis();
+			valueAxis.title = "Power (W)";
+			valueAxis.axisAlpha = 0.2;
+			valueAxis.dashLength = 1;
+			chart.addValueAxis(valueAxis);
+
+
+			// GRAPH
+			graph1 = new AmCharts.AmGraph();
+			graph1.title = data.name1 + " (outlet1)";
+			graph1.valueField = "outlet1";
+			graph1.bullet = "round";
+			graph1.hideBulletsCount = 100; // this makes the chart to hide bullets when there are more than 50 series in selection
+			chart.addGraph(graph1);
+
+			graph2 = new AmCharts.AmGraph();
+			graph2.title = data.name2 + " (outlet2)";
+			graph2.valueField = "outlet2";
+			graph2.bullet = "round";
+			graph2.hideBulletsCount = 100;
+			chart.addGraph(graph2);
+
+			graph3 = new AmCharts.AmGraph();
+			graph3.title = data.name3 + " (outlet3)";
+			graph3.valueField = "outlet3";
+			graph3.bullet = "round";
+			graph3.hideBulletsCount = 100;
+			chart.addGraph(graph3);
+
+			graph4 = new AmCharts.AmGraph();
+			graph4.title = data.name4 + " (outlet4)";
+			graph4.valueField = "outlet4";
+			graph4.bullet = "round";
+			graph4.hideBulletsCount = 100;
+			chart.addGraph(graph4);
+
+
+			// CURSOR
+			chartCursor = new AmCharts.ChartCursor();
+			chartCursor.cursorPosition = "mouse";
+			chartCursor.categoryBalloonDateFormat = "MMM. D,YYYY at J:NN:SS"
+			chart.addChartCursor(chartCursor);
+
+			// SCROLLBAR
+/*			var chartScrollbar = new AmCharts.ChartScrollbar();
+			chartScrollbar.graph = graph;
+			chartScrollbar.scrollbarHeight = 40;
+			chartScrollbar.color = "#FFFFFF";
+			chartScrollbar.autoGridCount = true;
+			chart.addChartScrollbar(chartScrollbar);
+*/			
+			// LEGEND 凡例
+			var legend = new AmCharts.AmLegend();
+			legend.marginLeft = 110;
+			legend.useGraphSettings = true;
+			chart.addLegend(legend);
+
+			// WRITE
+			chart.write("chartdiv");
+			
+		});
+	</script>
 </head>
 <body>
 <section>
 <header>
 <hgroup><h1> Smart Tap Power Monitor </h1></hgroup>
 </header>
+
+<!-- グラフ -->
+<div id="chartdiv" style="width:100%; height:600px;"></div>
+
 <article>
-<!-- ここにグラフ -->
-</article>
-<article>
-<table>
-<tr>
-<th>Outlet1</th><th>Outlet2</th><th>Outlet3</th><th>Outlet4</th><th>Temperature</th>
-</tr>
-<td><input id="val1" type="text" size="3" value="5600">W</td>
-<td><input id="val2" type="text" size="3" value="5450">W</td>
-<td><input id="val3" type="text" size="3" value="5770">W</td>
-<td><input id="val4" type="text" size="3" value="0">W</td>
-<td><input id="temp" type="text" size="3" value="40.00">&#186;C</td>
-<tr>
-<td><input id="name1" type="text" size="3" value="プリンタ"></td>
-<td><input id="name2" type="text" size="3" value="コーヒーメーカー"></td>
-<td><input id="name3" type="text" size="3" value="湯沸し器"></td>
-<td><input id="name4" type="text" size="3" value="none"></td>
-<td> &nbsp;</td>
-</tr>
-<tr>
-</tr>
-</table>
-<p id="date"></p>
-	<!-- チャット表示部分 -->
-	<ul id="chat_area">
-	</ul>
-	<!-- コメントフォーム -->
-	<input id="comment" type="text">
-	<input id="send" type="submit" value="send">
-	<script>
-		var ws = new WebSocket("ws://192.168.0.212:3000");
-
-		// メッセージ受信時の処理
-		ws.onmessage = function(event){
-			var data = JSON.parse(event.data);
-			var time = new Date(data.date);
-			
-			document.getElementById("date").innerText = time.toLocaleString();
-			
-			document.getElementById("val1").value = data.outlet1['power(W)'];
-			document.getElementById("val2").value = data.outlet2['power(W)'];
-			document.getElementById("val3").value = data.outlet3['power(W)'];
-			document.getElementById("val4").value = data.outlet4['power(W)'];
-			
-			document.getElementById("name1").value = data.outlet1['name'];
-			document.getElementById("name2").value = data.outlet2['name'];
-			document.getElementById("name3").value = data.outlet3['name'];
-			document.getElementById("name4").value = data.outlet4['name'];
-			
-//			console.log(data.outlet1['power(W)']);
-
-//			var message_li = document.createElement("li");
-//			message_li.textContent = event.data;
-//			document.getElementById("chat_area").appendChild(message_li);
-		};
-
-		// メッセージ送信時の処理
-//		document.getElementById("send").onclick = function(){
-//			var comment = document.getElementById("comment").value;
-//			ws.send(comment);
-//		};
-	</script>
+<!-- コンセント名変更 -->
+コンセント名の変更
+<ul>
+<li>Outlet1 <input id="name1" type="text"></li>
+<li>Outlet2 <input id="name2" type="text"></li>
+<li>Outlet3 <input id="name3" type="text"></li>
+<li>Outlet4 <input id="name4" type="text"></li>
+</ul>
+<input id="send" type="submit" value="send">
+<script>
+document.getElementById("send").onclick = function(){
+	var name = {
+			name1 : data.name1,
+			name2 : data.name2,
+			name3 : data.name3,
+			name4 : data.name4
+	};
+	if(document.getElementById("name1").value != "")
+		name["name1"] = document.getElementById("name1").value;
+	if(document.getElementById("name2").value != "")
+		name["name2"] = document.getElementById("name2").value;
+	if(document.getElementById("name3").value != "")
+		name["name3"] = document.getElementById("name3").value;
+	if(document.getElementById("name4").value != "")
+		name["name4"] = document.getElementById("name4").value;
+	
+	ws.send(JSON.stringify(name));
+};
+</script>
 </article>
 </section>
 </body>
