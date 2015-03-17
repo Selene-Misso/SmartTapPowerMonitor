@@ -10,16 +10,16 @@ EventMachine.run {
   @channel = EM::Channel.new
 
   @row = {}
-  @outlet1 = {"power(W)" => 0, "name" => "none"}
-  @outlet2 = {"power(W)" => 0, "name" => "none"}
-  @outlet3 = {"power(W)" => 0, "name" => "none"}
-  @outlet4 = {"power(W)" => 0, "name" => "none"}
   @row["date"]    = Time.now
-  @row["outlet1"] = @outlet1
-  @row["outlet2"] = @outlet2
-  @row["outlet3"] = @outlet3
-  @row["outlet4"] = @outlet4
-
+  @row["outlet1"] = 0
+  @row["outlet2"] = 0
+  @row["outlet3"] = 0
+  @row["outlet4"] = 0
+  @row["name1"] = "none"
+  @row["name2"] = "none"
+  @row["name3"] = "none"
+  @row["name4"] = "none"
+  
   # Thread monitoring FIFO
   read_thread = Thread.new do
     @fifo = open("FifoTest", "r")
@@ -27,11 +27,11 @@ EventMachine.run {
       line.chomp!
       lineAry = line.split(" ", 4)
       
-      @row["date"]         = Time.now
-      @outlet1["power(W)"] = lineAry[0].to_i
-      @outlet2["power(W)"] = lineAry[1].to_i
-      @outlet3["power(W)"] = lineAry[2].to_i
-      @outlet4["power(W)"] = lineAry[3].to_i
+      @row["date"]    = Time.now
+      @row["outlet1"] = lineAry[0].to_i
+      @row["outlet2"] = lineAry[1].to_i
+      @row["outlet3"] = lineAry[2].to_i
+      @row["outlet4"] = lineAry[3].to_i
       
       puts JSON.pretty_generate(@row)
       @channel.push JSON.generate(@row)
