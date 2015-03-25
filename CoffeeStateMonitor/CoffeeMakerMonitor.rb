@@ -30,10 +30,10 @@ class CoffeeMonitor
 		case @state
 		when "WAIT"  # 待ち状態
 			if val >= 6000
-				@state = "DROP"
+				@state = "DRIP"
 			end
 		
-		when "DROP"  # ドリップ状態
+		when "DRIP"  # ドリップ状態
 			if val == 0
 				@state = "KEEP"
 			end
