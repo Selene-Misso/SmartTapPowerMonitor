@@ -22,7 +22,7 @@ class CoffeeMonitor
 
 		# Slack 連携
 		@notifier = Slack::Notifier.new WEBHOOK_URL
-		@notifier.ping "Coffee maker monitor is booted."
+		@notifier.ping "待機中 : 起動しました"
 	end
 	
 	# 状態を変更
@@ -44,7 +44,7 @@ class CoffeeMonitor
 		when "DRIP"  # ドリップ状態
 			if val == 0
 				@state = "KEEP"
-				@notifier.ping "保温中"
+				@notifier.ping "保温中 : コーヒーが湧いたよ"
 			end
 		
 		when "KEEP"  # 保温状態
@@ -69,7 +69,7 @@ class CoffeeMonitor
 	end
 end
 
-monitor = CoffeeMonitor.new(55)
+monitor = CoffeeMonitor.new(70)
 
 puts "websocket-client-simple v#{WebSocket::Client::Simple::VERSION}"
 
@@ -94,10 +94,10 @@ ws.on :message do |msg|
 	else
 		amp = nil
 	end
-	p amp
+#	p amp
 	if amp != nil
 		monitor.changeState(amp)
-		p monitor.getState
+#		p monitor.getState
 	end
 end
 
