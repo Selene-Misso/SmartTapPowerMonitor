@@ -4,8 +4,12 @@
 # コーヒーが出来たことを検出する．
 # Websocket Client -> CoffeeMonitor -> Push to Slack or Twitter
 
-#require 'em-websocket'
+require 'websocket-client-simple'
 require 'json'
+require 'slack-notifier'
+
+# Slack webhook URL
+WEBHOOK_URL = 'https://hooks.slack.com/services/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'
 
 # コーヒーの状態を監視するクラス
 class CoffeeMonitor
@@ -15,7 +19,10 @@ class CoffeeMonitor
 		@state = "WAIT"
 		@array = Array.new(ave_sec, 0)
 		@p     = 0
-		p @array
+
+		# Slack 連携
+		@notifier = Slack::Notifier.new WEBHOOK_URL
+		@notifier.ping "Coffee maker monitor is booted."
 	end
 	
 	# 状態を変更
@@ -31,11 +38,13 @@ class CoffeeMonitor
 		when "WAIT"  # 待ち状態
 			if val >= 6000
 				@state = "DRIP"
+				@notifier.ping "ドリップ中"
 			end
 		
 		when "DRIP"  # ドリップ状態
 			if val == 0
 				@state = "KEEP"
+				@notifier.ping "保温中"
 			end
 		
 		when "KEEP"  # 保温状態
@@ -46,13 +55,13 @@ class CoffeeMonitor
 			puts ave
 			if ave <= 500
 				@state = "WAIT"
+				@notifier.ping "待機中"
 			end
 		
 		else
 			@state = "WAIT"
 		
 		end
-		getState
 	end
 	
 	def getState
@@ -61,57 +70,50 @@ class CoffeeMonitor
 end
 
 monitor = CoffeeMonitor.new(55)
-70.times{
-monitor.changeState(350)
-}
-puts monitor.getState
-monitor.changeState(10)
-monitor.changeState(6100)
-monitor.changeState(6130)
-monitor.changeState(50)
-monitor.changeState(0)
 
-monitor.changeState(0)
-monitor.changeState(0)
-monitor.changeState(0)
-monitor.changeState(0)
-monitor.changeState(0)
-monitor.changeState(0)
-monitor.changeState(0)
-monitor.changeState(0)
-monitor.changeState(0)
-monitor.changeState(6100)
-monitor.changeState(6130)
-monitor.changeState(50)
-monitor.changeState(0)
-monitor.changeState(0)
-monitor.changeState(0)
-monitor.changeState(0)
-monitor.changeState(0)
-monitor.changeState(0)
-monitor.changeState(0)
-monitor.changeState(0)
-monitor.changeState(0)
-monitor.changeState(0)
-monitor.changeState(0)
-monitor.changeState(0)
-monitor.changeState(0)
-monitor.changeState(0)
-monitor.changeState(0)
-monitor.changeState(0)
-monitor.changeState(0)
-monitor.changeState(0)
-monitor.changeState(0)
-monitor.changeState(0)
-monitor.changeState(0)
-monitor.changeState(0)
-monitor.changeState(0)
-monitor.changeState(0)
-monitor.changeState(0)
-monitor.changeState(0)
-monitor.changeState(0)
-monitor.changeState(0)
-monitor.changeState(0)
-monitor.changeState(0)
-monitor.changeState(0)
-monitor.changeState(0)
+puts "websocket-client-simple v#{WebSocket::Client::Simple::VERSION}"
+
+url = ARGV.shift || 'ws://192.168.0.212:3000'
+
+ws = WebSocket::Client::Simple.connect url
+
+ws.on :message do |msg|
+#	puts ">> #{msg.data}"
+	data = JSON.parse(msg.data)
+#	puts JSON.pretty_generate(data)
+	
+	# コンセント名が coffee を含むものを取り出す
+	if    data['name1'].include?("Coffee")
+		amp = data['outlet1']
+	elsif data['name2'].include?("Coffee")
+		amp = data['outlet2']
+	elsif data['name3'].include?("Coffee")
+		amp = data['outlet3']
+	elsif data['name4'].include?("Coffee")
+		amp = data['outlet4']
+	else
+		amp = nil
+	end
+	p amp
+	if amp != nil
+		monitor.changeState(amp)
+		p monitor.getState
+	end
+end
+
+ws.on :open do
+	puts "-- websocket open (#{ws.url})"
+end
+
+ws.on :close do |e|
+	puts "-- websocket close (#{e.inspect})"
+	exit 1
+end
+
+ws.on :error do |e|
+	puts "-- error (#{e.inspect})"
+end
+
+loop do
+	ws.send STDIN.gets.strip
+end
